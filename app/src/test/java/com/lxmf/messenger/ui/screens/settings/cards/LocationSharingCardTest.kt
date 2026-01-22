@@ -267,9 +267,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -310,9 +307,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -353,9 +347,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -397,9 +388,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -451,9 +439,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -505,9 +490,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -564,9 +546,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -624,9 +603,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -679,9 +655,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -723,9 +696,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -769,9 +739,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 
@@ -817,9 +784,6 @@ class LocationSharingCardTest {
                 onRequestTelemetryNow = {},
                 telemetryHostModeEnabled = false,
                 onTelemetryHostModeEnabledChange = {},
-                telemetryAllowedRequesters = emptySet(),
-                contacts = emptyList(),
-                onTelemetryAllowedRequestersChange = {},
             )
         }
 

@@ -199,7 +199,7 @@ class MigrationExporter
                 ContactExport(
                     destinationHash = contact.destinationHash,
                     identityHash = contact.identityHash,
-                    publicKey = contact.publicKey?.let { Base64.encodeToString(it, Base64.NO_WRAP) },
+                    publicKey = Base64.encodeToString(contact.publicKey, Base64.NO_WRAP),
                     customNickname = contact.customNickname,
                     notes = contact.notes,
                     tags = contact.tags,
@@ -207,7 +207,6 @@ class MigrationExporter
                     addedVia = contact.addedVia,
                     lastInteractionTimestamp = contact.lastInteractionTimestamp,
                     isPinned = contact.isPinned,
-                    status = contact.status.name,
                 )
             }
         }

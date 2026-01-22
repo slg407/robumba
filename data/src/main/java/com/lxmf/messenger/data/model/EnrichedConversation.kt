@@ -1,18 +1,15 @@
 package com.lxmf.messenger.data.model
 
 /**
- * Enriched conversation data combining conversations table with announces and contacts.
+ * Enriched conversation data combining conversations table with announces.
  *
  * This model represents the result of a join query that combines:
  * - Conversation data (from conversations table)
  * - Profile icon (from announces table)
- * - Display name with priority: nickname > announce name > peer name > hash (from contacts + announces)
  */
 data class EnrichedConversation(
     val peerHash: String,
     val peerName: String,
-    // Display name with priority: customNickname > announceName > peerName > peerHash
-    val displayName: String,
     val peerPublicKey: ByteArray?,
     val lastMessage: String,
     val lastMessageTimestamp: Long,
@@ -30,7 +27,6 @@ data class EnrichedConversation(
 
         if (peerHash != other.peerHash) return false
         if (peerName != other.peerName) return false
-        if (displayName != other.displayName) return false
         if (peerPublicKey != null) {
             if (other.peerPublicKey == null) return false
             if (!peerPublicKey.contentEquals(other.peerPublicKey)) return false
@@ -50,7 +46,6 @@ data class EnrichedConversation(
     override fun hashCode(): Int {
         var result = peerHash.hashCode()
         result = 31 * result + peerName.hashCode()
-        result = 31 * result + displayName.hashCode()
         result = 31 * result + (peerPublicKey?.contentHashCode() ?: 0)
         result = 31 * result + lastMessage.hashCode()
         result = 31 * result + lastMessageTimestamp.hashCode()

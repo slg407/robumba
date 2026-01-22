@@ -44,7 +44,6 @@ class ChatsViewModelTest {
         Conversation(
             peerHash = "peer1",
             peerName = "Alice",
-            displayName = "Alice",
             peerPublicKey = ByteArray(32) { 1 },
             lastMessage = "Hello",
             lastMessageTimestamp = 1000L,
@@ -55,7 +54,6 @@ class ChatsViewModelTest {
         Conversation(
             peerHash = "peer2",
             peerName = "Bob",
-            displayName = "Bob",
             peerPublicKey = ByteArray(32) { 2 },
             lastMessage = "Hi there",
             lastMessageTimestamp = 2000L,
@@ -66,7 +64,6 @@ class ChatsViewModelTest {
         Conversation(
             peerHash = "peer3",
             peerName = "Charlie",
-            displayName = "Charlie",
             peerPublicKey = null,
             lastMessage = "Hey",
             lastMessageTimestamp = 3000L,

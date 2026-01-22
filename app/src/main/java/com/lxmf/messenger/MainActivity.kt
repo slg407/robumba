@@ -21,6 +21,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Chat
@@ -41,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -122,7 +124,6 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var reticulumProtocol: ReticulumProtocol
-
 
     // State to hold pending navigation from intent
     private val pendingNavigation = mutableStateOf<PendingNavigation?>(null)
@@ -429,6 +430,8 @@ sealed class Screen(val route: String, val title: String, val icon: androidx.com
 
     object Contacts : Screen("contacts", "Contacts", Icons.Default.People)
 
+    object Browser : Screen("rbrowser", "Browser", Icons.Default.Language) // [!code ++]
+
     object Map : Screen("map", "Map", Icons.Default.Map)
 
     object Identity : Screen("identity", "Network Status", Icons.Default.Info)
@@ -730,6 +733,7 @@ fun ColumbaNavigation(
         listOf(
             Screen.Chats,
             Screen.Contacts,
+            Screen.Browser,
             Screen.Map,
             Screen.Settings,
         )
@@ -858,6 +862,10 @@ fun ColumbaNavigation(
                                 navController.navigate("messaging/$encodedHash/$encodedName")
                             },
                         )
+                    }
+
+                    composable(Screen.Browser.route) {
+                        com.lxmf.messenger.ui.screens.rBrowser.RBrowserScreen()
                     }
 
                     composable(Screen.Map.route) {

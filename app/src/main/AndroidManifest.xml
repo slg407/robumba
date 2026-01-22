@@ -69,6 +69,7 @@
     <application
         android:name=".ColumbaApplication"
         android:enableOnBackInvokedCallback="true"
+        android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
         android:dataExtractionRules="@xml/backup_rules"

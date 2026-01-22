@@ -242,12 +242,6 @@ android {
                     // Required for Java 9+ compatibility
                     excludes = listOf("jdk.internal.*")
                 }
-                // Show test progress in CI logs
-                it.testLogging {
-                    events("passed", "skipped", "failed")
-                    showStandardStreams = false
-                    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-                }
             }
         }
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
@@ -276,6 +270,8 @@ chaquopy {
 
             // Install requirements from requirements.txt (includes LXST which has pycodec2 removed)
             install("-r", "../python/requirements.txt")
+            install("flask")
+            install("waitress")
         }
 
         // Include Python source files (needed for pkgutil.get_data() to deploy BLE interface)

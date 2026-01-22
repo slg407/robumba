@@ -415,11 +415,6 @@ class MockReticulumProtocol : ReticulumProtocol {
         return Result.success(Unit)
     }
 
-    override suspend fun setTelemetryAllowedRequesters(allowedHashes: Set<String>): Result<Unit> {
-        // Mock implementation - always succeeds
-        return Result.success(Unit)
-    }
-
     override suspend fun sendReaction(
         destinationHash: ByteArray,
         targetMessageId: String,

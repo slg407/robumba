@@ -298,10 +298,6 @@ fun SettingsScreen(
                     // Telemetry host mode props
                     telemetryHostModeEnabled = state.telemetryHostModeEnabled,
                     onTelemetryHostModeEnabledChange = { viewModel.setTelemetryHostModeEnabled(it) },
-                    // Allowed requesters props
-                    telemetryAllowedRequesters = state.telemetryAllowedRequesters,
-                    contacts = state.contacts,
-                    onTelemetryAllowedRequestersChange = { viewModel.setTelemetryAllowedRequesters(it) },
                 )
 
                 MapSourcesCard(
@@ -421,11 +417,10 @@ fun SettingsScreen(
                             clipboard.setPrimaryClip(clip)
 
                             // Open GitHub Issues in browser
-                            val intent =
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse("https://github.com/torlando-tech/columba/issues/new"),
-                                )
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse("https://github.com/torlando-tech/columba/issues/new"),
+                            )
                             context.startActivity(intent)
 
                             snackbarHostState.showSnackbar(
@@ -480,14 +475,13 @@ fun SettingsScreen(
                     pendingCrashReport = null
                 },
                 onReportBug = {
-                    val systemInfo =
-                        DeviceInfoUtil.getSystemInfo(
-                            context = context,
-                            identityHash = state.identityHash,
-                            reticulumVersion = state.reticulumVersion,
-                            lxmfVersion = state.lxmfVersion,
-                            bleReticulumVersion = state.bleReticulumVersion,
-                        )
+                    val systemInfo = DeviceInfoUtil.getSystemInfo(
+                        context = context,
+                        identityHash = state.identityHash,
+                        reticulumVersion = state.reticulumVersion,
+                        lxmfVersion = state.lxmfVersion,
+                        bleReticulumVersion = state.bleReticulumVersion,
+                    )
                     coroutineScope.launch {
                         val report = crashReportManager.generateBugReport(systemInfo, pendingCrashReport)
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -495,11 +489,10 @@ fun SettingsScreen(
                         clipboard.setPrimaryClip(clip)
 
                         // Open GitHub Issues in browser
-                        val intent =
-                            Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse("https://github.com/torlando-tech/columba/issues/new"),
-                            )
+                        val intent = Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://github.com/torlando-tech/columba/issues/new"),
+                        )
                         context.startActivity(intent)
 
                         crashReportManager.clearPendingCrashReport()

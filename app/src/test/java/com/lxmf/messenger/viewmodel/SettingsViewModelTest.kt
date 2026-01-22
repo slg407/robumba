@@ -65,7 +65,6 @@ class SettingsViewModelTest {
     private lateinit var interfaceRepository: InterfaceRepository
     private lateinit var mapTileSourceManager: MapTileSourceManager
     private lateinit var telemetryCollectorManager: TelemetryCollectorManager
-    private lateinit var contactRepository: com.lxmf.messenger.data.repository.ContactRepository
     private lateinit var viewModel: SettingsViewModel
 
     // Mutable flows for controlling test scenarios
@@ -111,10 +110,6 @@ class SettingsViewModelTest {
         interfaceRepository = mockk(relaxed = true)
         mapTileSourceManager = mockk(relaxed = true)
         telemetryCollectorManager = mockk(relaxed = true)
-        contactRepository = mockk(relaxed = true)
-
-        // Mock ContactRepository flow
-        every { contactRepository.getEnrichedContacts() } returns flowOf(emptyList())
 
         // Mock locationSharingManager flows
         every { locationSharingManager.activeSessions } returns MutableStateFlow(emptyList())
@@ -183,7 +178,6 @@ class SettingsViewModelTest {
             interfaceRepository = interfaceRepository,
             mapTileSourceManager = mapTileSourceManager,
             telemetryCollectorManager = telemetryCollectorManager,
-            contactRepository = contactRepository,
         )
     }
 
@@ -1481,7 +1475,6 @@ class SettingsViewModelTest {
                     interfaceRepository = interfaceRepository,
                     mapTileSourceManager = mapTileSourceManager,
                     telemetryCollectorManager = telemetryCollectorManager,
-                    contactRepository = contactRepository,
                 )
 
             viewModel.state.test {
@@ -1527,7 +1520,6 @@ class SettingsViewModelTest {
                     interfaceRepository = interfaceRepository,
                     mapTileSourceManager = mapTileSourceManager,
                     telemetryCollectorManager = telemetryCollectorManager,
-                    contactRepository = contactRepository,
                 )
 
             viewModel.state.test {
@@ -2119,7 +2111,6 @@ class SettingsViewModelTest {
                     interfaceRepository = interfaceRepository,
                     mapTileSourceManager = mapTileSourceManager,
                     telemetryCollectorManager = telemetryCollectorManager,
-                    contactRepository = contactRepository,
                 )
 
             // Wait for any potential async operations to settle
@@ -2162,7 +2153,6 @@ class SettingsViewModelTest {
                     interfaceRepository = interfaceRepository,
                     mapTileSourceManager = mapTileSourceManager,
                     telemetryCollectorManager = telemetryCollectorManager,
-                    contactRepository = contactRepository,
                 )
 
             // The ViewModel should be created successfully with ServiceReticulumProtocol

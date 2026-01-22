@@ -27,8 +27,6 @@ import javax.inject.Singleton
 data class Conversation(
     val peerHash: String,
     val peerName: String,
-    // Display name with priority: customNickname > announceName > peerName > peerHash
-    val displayName: String,
     val peerPublicKey: ByteArray? = null,
     val lastMessage: String,
     val lastMessageTimestamp: Long,
@@ -440,7 +438,6 @@ class ConversationRepository
             Conversation(
                 peerHash = peerHash,
                 peerName = peerName,
-                displayName = peerName, // Entity doesn't have enriched displayName, use peerName
                 peerPublicKey = peerPublicKey,
                 lastMessage = lastMessage,
                 lastMessageTimestamp = lastMessageTimestamp,
@@ -451,7 +448,6 @@ class ConversationRepository
             Conversation(
                 peerHash = peerHash,
                 peerName = peerName,
-                displayName = displayName,
                 peerPublicKey = peerPublicKey,
                 lastMessage = lastMessage,
                 lastMessageTimestamp = lastMessageTimestamp,
