@@ -25,7 +25,3 @@ u-msgpack-python
 # NOTE: pycodec2 is removed from LXST's dependencies and installed via pre-built
 # wheel in build.gradle.kts. audioop is built-in on Python 3.11.
 lxst @ git+https://github.com/torlando-tech/LXST.git@chaquopy-compat
-
-flask
-waitress
-netifaces
