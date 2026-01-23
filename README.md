@@ -34,6 +34,8 @@ Alternatively, you can download the apk via [NomadNet](https://github.com/markqv
 
 Want to learn more? Visit [Reticulum's documentation](https://reticulum.network/).
 
-## Why "Columba"
+## Why "Robumba"
+
+Columba+rBrowser=Robumba
 
 Columba, latin for "dove," is a [constellation](https://en.wikipedia.org/wiki/Columba_(constellation)) in the southern sky depicting a dove. Doves are commonly a symbol of peace and hope, and have been used as messengers throughout history. 
