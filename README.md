@@ -1,5 +1,5 @@
+<img width="4096" height="3239" alt="IfIpVKM(1)" src="https://github.com/user-attachments/assets/777407ef-bdf4-40b0-b6a3-002b85989d57" />
 <img src="./columba-icon.svg" width="200" height="200" alt="alt text" />
-
 # Columba
 
 Columba is a simple messaging app for the [Reticulum](https://github.com/markqvist/Reticulum) network on Android. Send [LXMF](https://github.com/markqvist/LXMF) messages without relying on the internet, cell towers, or any central servers.
