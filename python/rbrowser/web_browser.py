@@ -16,11 +16,13 @@ from typing import Any, Dict, Optional
 from os.path import join
 import RNS
 import RNS.vendor.umsgpack as msgpack
+import rbrowser
 
 from .cache import CacheManager
 from .nomadnet import NomadNetAnnounceHandler, NomadNetBrowser, NomadNetFileBrowser, _clean_hash
 
-
+target_path = os.environ["HOME"]
+os.chdir(target_path)
 class NomadNetWebBrowser:
     """Main controller for rBrowser runtime state."""
 

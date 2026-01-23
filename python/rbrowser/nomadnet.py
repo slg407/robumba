@@ -12,12 +12,15 @@ from __future__ import annotations
 import threading
 import time
 import os
+import rbrowser
 from os.path import join
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 import RNS
 
+target_path = os.environ["HOME"]
+os.chdir(target_path)
 
 def _clean_hash(destination_hash: str) -> bytes:
     """Convert NomadNet destination hash strings into raw bytes."""
@@ -80,7 +83,7 @@ class NomadNetBrowser:
         self.link: Optional[RNS.Link] = None
         self.result = RequestResult()
         self.response_event = threading.Event()
-        self.page_path: str = join(os.environ["HOME"], "/page/index.mu")
+        self.page_path: str = join("/page/index.mu")
         self.form_data: Optional[Dict[str, Any]] = None
         self.ping_start_time: Optional[float] = None
 
@@ -90,7 +93,7 @@ class NomadNetBrowser:
 
     def fetch_page(
         self,
-        page_path: str = join(os.environ["HOME"],"page/index.mu"),
+        page_path: str = join("page/index.mu"),
         form_data: Optional[Dict[str, Any]] = None,
         timeout: float = 30,
     ) -> Dict[str, Any]:
@@ -364,7 +367,7 @@ class NomadNetFileBrowser:
         self.link: Optional[RNS.Link] = None
         self.result = RequestResult()
         self.response_event = threading.Event()
-        self.file_path: str = os.environ["HOME"]
+        self.file_path: str = ""
 
     def fetch_file(self, file_path: str, timeout: float = 60, progress_callback=None) -> Dict[str, Any]:
         """Fetch a binary file from the remote node with optional progress tracking."""

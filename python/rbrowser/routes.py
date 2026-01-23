@@ -11,6 +11,7 @@ from __future__ import annotations
 import io
 import mimetypes
 import os
+from os.path import join
 import re
 import zipfile
 from datetime import datetime
@@ -22,6 +23,10 @@ from flask import jsonify, render_template, request, send_file, send_from_direct
 import time
 import uuid
 import threading
+import rbrowser
+
+target_path = os.environ["HOME"]
+os.chdir(target_path)
 
 # Global storage for download progress
 download_progress = {}
@@ -512,7 +517,7 @@ def register_routes(app, browser) -> None:
     @app.route('/api/favorites', methods=['GET'])
     def get_favorites():
         try:
-            favorites_file = (os.environ["HOME"], 'settings/favorites.json')
+            favorites_file = ('settings/favorites.json')
             if os.path.exists(favorites_file):
                 with open(favorites_file, 'r') as f:
                     favorites = json.load(f)
@@ -526,10 +531,10 @@ def register_routes(app, browser) -> None:
     def save_favorites():
         try:
             favorites = request.json.get('favorites', [])
-            favorites_file = (os.environ["HOME"], 'settings/favorites.json')
+            favorites_file = ('settings/favorites.json')
 
             # Create settings directory if it doesn't exist
-            os.makedirs(os.environ["HOME"] / 'settings', exist_ok=True)
+            os.makedirs('settings', exist_ok=True)
 
             with open(favorites_file, 'w') as f:
                 json.dump(favorites, f, indent=2)

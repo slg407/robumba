@@ -13,14 +13,20 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+from os.path import join
 import secrets
 import sys
+import rbrowser
 from typing import Tuple
 
 from flask import Flask
 
 from rbrowser.routes import register_routes
 from rbrowser.web_browser import NomadNetWebBrowser
+target.path = join(os.environ["HOME"], "rBrowser")
+os.mkdir(target.path)
+os.chdir(target.path)
+
 
 # Ensure UTF-8 output for Windows console
 if sys.platform == "win32":
