@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -103,19 +102,6 @@ fun OfflineMapDownloadScreen(
         }
     }
 
-    // Show toast when HTTP was auto-disabled after download
-    val context = LocalContext.current
-    LaunchedEffect(state.httpAutoDisabled) {
-        if (state.httpAutoDisabled) {
-            android.widget.Toast.makeText(
-                context,
-                "HTTP disabled. Your offline maps are ready.",
-                android.widget.Toast.LENGTH_LONG,
-            ).show()
-            viewModel.dismissHttpAutoDisabledMessage()
-        }
-    }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -178,7 +164,6 @@ fun OfflineMapDownloadScreen(
                         addressSearchResults = state.addressSearchResults,
                         isSearchingAddress = state.isSearchingAddress,
                         addressSearchError = state.addressSearchError,
-                        httpEnabled = state.httpEnabled,
                         onLocationSet = { lat, lon -> viewModel.setLocation(lat, lon) },
                         onCurrentLocationRequest = { location ->
                             viewModel.setLocationFromCurrent(location)
@@ -186,7 +171,6 @@ fun OfflineMapDownloadScreen(
                         onAddressQueryChange = { viewModel.setAddressQuery(it) },
                         onSearchAddress = { viewModel.searchAddress() },
                         onSelectAddressResult = { viewModel.selectAddressResult(it) },
-                        onEnableHttp = { viewModel.enableHttp() },
                         onNext = { viewModel.nextStep() },
                     )
 
@@ -213,9 +197,7 @@ fun OfflineMapDownloadScreen(
                         estimatedTileCount = state.estimatedTileCount,
                         estimatedSize = state.getEstimatedSizeString(),
                         name = state.name,
-                        httpEnabled = state.httpEnabled,
                         onNameChange = { viewModel.setName(it) },
-                        onEnableHttp = { viewModel.enableHttp() },
                         onStartDownload = { viewModel.nextStep() },
                         onBack = { viewModel.previousStep() },
                     )
@@ -267,13 +249,11 @@ fun LocationSelectionStep(
     addressSearchResults: List<AddressSearchResult>,
     isSearchingAddress: Boolean,
     addressSearchError: String?,
-    httpEnabled: Boolean,
     onLocationSet: (Double, Double) -> Unit,
     onCurrentLocationRequest: (Location) -> Unit,
     onAddressQueryChange: (String) -> Unit,
     onSearchAddress: () -> Unit,
     onSelectAddressResult: (AddressSearchResult) -> Unit,
-    onEnableHttp: () -> Unit,
     onNext: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -318,15 +298,6 @@ fun LocationSelectionStep(
                 .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Warning banner when HTTP is disabled
-        if (!httpEnabled) {
-            HttpDisabledWarningBanner(
-                onEnableHttp = onEnableHttp,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
         Text(
             text = "Choose the center point for your offline map region.",
             style = MaterialTheme.typography.bodyLarge,
@@ -729,9 +700,7 @@ fun ConfirmDownloadStep(
     estimatedTileCount: Long,
     estimatedSize: String,
     name: String,
-    httpEnabled: Boolean,
     onNameChange: (String) -> Unit,
-    onEnableHttp: () -> Unit,
     onStartDownload: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
@@ -743,15 +712,6 @@ fun ConfirmDownloadStep(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
     ) {
-        // Warning banner when HTTP is disabled
-        if (!httpEnabled) {
-            HttpDisabledWarningBanner(
-                onEnableHttp = onEnableHttp,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
         Text(
             text = "Name Your Map",
             style = MaterialTheme.typography.titleMedium,
@@ -826,64 +786,10 @@ fun ConfirmDownloadStep(
             }
             Button(
                 onClick = onStartDownload,
-                enabled = name.isNotBlank() && httpEnabled,
+                enabled = name.isNotBlank(),
                 modifier = Modifier.weight(1f),
             ) {
                 Text("Download")
-            }
-        }
-    }
-}
-
-/**
- * Warning banner shown when HTTP map source is disabled.
- * Downloads require HTTP to fetch tiles from the internet.
- */
-@Composable
-fun HttpDisabledWarningBanner(
-    onEnableHttp: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier,
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-            ),
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                imageVector = Icons.Default.Warning,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer,
-            )
-            Column(
-                modifier =
-                    Modifier
-                        .weight(1f)
-                        .padding(horizontal = 12.dp),
-            ) {
-                Text(
-                    text = "Internet Access Required",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                )
-                Text(
-                    text = "HTTP map source is disabled. Enable it to download tiles.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                )
-            }
-            FilledTonalButton(
-                onClick = onEnableHttp,
-            ) {
-                Text("Enable")
             }
         }
     }

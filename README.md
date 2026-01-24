@@ -1,5 +1,5 @@
+<img width="4096" height="3239" alt="IfIpVKM(1)" src="https://github.com/user-attachments/assets/777407ef-bdf4-40b0-b6a3-002b85989d57" />
 <img src="./columba-icon.svg" width="200" height="200" alt="alt text" />
-
 # Columba
 
 Columba is a simple messaging app for the [Reticulum](https://github.com/markqvist/Reticulum) network on Android. Send [LXMF](https://github.com/markqvist/LXMF) messages without relying on the internet, cell towers, or any central servers.
@@ -34,6 +34,8 @@ Alternatively, you can download the apk via [NomadNet](https://github.com/markqv
 
 Want to learn more? Visit [Reticulum's documentation](https://reticulum.network/).
 
-## Why "Columba"
+## Why "Robumba"
+
+Columba+rBrowser=Robumba
 
 Columba, latin for "dove," is a [constellation](https://en.wikipedia.org/wiki/Columba_(constellation)) in the southern sky depicting a dove. Doves are commonly a symbol of peace and hope, and have been used as messengers throughout history. 

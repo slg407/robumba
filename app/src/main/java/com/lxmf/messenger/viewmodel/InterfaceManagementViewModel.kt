@@ -53,12 +53,6 @@ data class InterfaceManagementState(
     val infoMessage: String? = null,
     // Interface online status from Python/RNS (interface name -> online status)
     val interfaceOnlineStatus: Map<String, Boolean> = emptyMap(),
-    // RNS 1.1.x Interface Discovery
-    val discoveredInterfaceCount: Int = 0,
-    val discoveredAvailableCount: Int = 0,
-    val discoveredUnknownCount: Int = 0,
-    val discoveredStaleCount: Int = 0,
-    val isDiscoveryEnabled: Boolean = false,
 )
 
 /**
@@ -156,7 +150,6 @@ class InterfaceManagementViewModel
             observeBluetoothState()
             checkExternalPendingChanges()
             observeInterfaceStatusChanges()
-            loadDiscoveredInterfacesCount()
         }
 
         /**
@@ -217,43 +210,6 @@ class InterfaceManagementViewModel
             } catch (e: Exception) {
                 Log.e(TAG, "Error parsing interface status JSON", e)
             }
-        }
-
-        /**
-         * Load discovered interfaces count from RNS 1.1.x discovery system.
-         * Also checks if discovery is enabled.
-         */
-        private fun loadDiscoveredInterfacesCount() {
-            viewModelScope.launch(ioDispatcher) {
-                try {
-                    val discoveryEnabled = reticulumProtocol.isDiscoveryEnabled()
-                    val discovered = reticulumProtocol.getDiscoveredInterfaces()
-                    val availableCount = discovered.count { it.status == "available" }
-                    val unknownCount = discovered.count { it.status == "unknown" }
-                    val staleCount = discovered.count { it.status == "stale" }
-
-                    _state.update {
-                        it.copy(
-                            isDiscoveryEnabled = discoveryEnabled,
-                            discoveredInterfaceCount = discovered.size,
-                            discoveredAvailableCount = availableCount,
-                            discoveredUnknownCount = unknownCount,
-                            discoveredStaleCount = staleCount,
-                        )
-                    }
-                    Log.d(TAG, "Discovered interfaces: ${discovered.size} (available=$availableCount, unknown=$unknownCount, stale=$staleCount), discovery enabled=$discoveryEnabled")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to load discovered interfaces count", e)
-                }
-            }
-        }
-
-        /**
-         * Refresh discovered interfaces count.
-         * Call this to manually refresh the discovery data.
-         */
-        fun refreshDiscoveredInterfaces() {
-            loadDiscoveredInterfacesCount()
         }
 
         /**

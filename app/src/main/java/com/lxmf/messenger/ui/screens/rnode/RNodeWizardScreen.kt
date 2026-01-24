@@ -37,10 +37,6 @@ fun RNodeWizardScreen(
     preselectedUsbVendorId: Int? = null,
     preselectedUsbProductId: Int? = null,
     preselectedUsbDeviceName: String? = null,
-    preselectedLoraFrequency: Long? = null,
-    preselectedLoraBandwidth: Int? = null,
-    preselectedLoraSf: Int? = null,
-    preselectedLoraCr: Int? = null,
     onNavigateBack: () -> Unit,
     onComplete: () -> Unit,
     viewModel: RNodeWizardViewModel = hiltViewModel(),
@@ -77,24 +73,6 @@ fun RNodeWizardScreen(
                 vendorId = preselectedUsbVendorId,
                 productId = preselectedUsbProductId,
                 deviceName = preselectedUsbDeviceName,
-            )
-        }
-    }
-
-    // Apply LoRa params pre-selection if provided (from discovered interfaces)
-    LaunchedEffect(preselectedLoraFrequency, preselectedLoraBandwidth, preselectedLoraSf, preselectedLoraCr) {
-        val hasLoraParams = listOfNotNull(
-            preselectedLoraFrequency,
-            preselectedLoraBandwidth,
-            preselectedLoraSf,
-            preselectedLoraCr,
-        ).isNotEmpty()
-        if (hasLoraParams) {
-            viewModel.setInitialRadioParams(
-                frequency = preselectedLoraFrequency,
-                bandwidth = preselectedLoraBandwidth,
-                spreadingFactor = preselectedLoraSf,
-                codingRate = preselectedLoraCr,
             )
         }
     }

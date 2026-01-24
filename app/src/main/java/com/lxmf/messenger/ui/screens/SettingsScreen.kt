@@ -58,7 +58,6 @@ import com.lxmf.messenger.ui.screens.settings.cards.NetworkCard
 import com.lxmf.messenger.ui.screens.settings.cards.NotificationSettingsCard
 import com.lxmf.messenger.ui.screens.settings.cards.PrivacyCard
 import com.lxmf.messenger.ui.screens.settings.cards.SharedInstanceBannerCard
-import com.lxmf.messenger.ui.screens.settings.cards.shouldShowSharedInstanceBanner
 import com.lxmf.messenger.ui.screens.settings.cards.ThemeSelectionCard
 import com.lxmf.messenger.ui.components.LocationPermissionBottomSheet
 import com.lxmf.messenger.ui.screens.settings.dialogs.CrashReportDialog
@@ -173,12 +172,16 @@ fun SettingsScreen(
                         .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                val showSharedInstanceBanner = shouldShowSharedInstanceBanner(
-                    isSharedInstance = state.isSharedInstance,
-                    sharedInstanceOnline = state.sharedInstanceOnline,
-                    wasUsingSharedInstance = state.wasUsingSharedInstance,
-                    isRestarting = state.isRestarting,
-                )
+                // Show shared instance banner when:
+                // - Currently using a shared instance
+                // - A shared instance is currently available (can switch to it)
+                // - Was using shared instance but it went offline (informational state)
+                // - Service is restarting
+                val showSharedInstanceBanner =
+                    state.isSharedInstance ||
+                        state.sharedInstanceOnline ||
+                        state.wasUsingSharedInstance ||
+                        state.isRestarting
                 if (showSharedInstanceBanner) {
                     SharedInstanceBannerCard(
                         isExpanded = state.isSharedInstanceBannerExpanded,

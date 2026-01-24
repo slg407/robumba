@@ -291,7 +291,7 @@ fun IncomingCallScreen(
     }
 }
 
-internal fun formatIncomingHash(hash: String): String {
+private fun formatIncomingHash(hash: String): String {
     return if (hash.length > 12) {
         "${hash.take(6)}...${hash.takeLast(6)}"
     } else {

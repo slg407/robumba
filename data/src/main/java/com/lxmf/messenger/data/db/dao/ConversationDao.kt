@@ -16,35 +16,23 @@ interface ConversationDao {
     fun getAllConversations(identityHash: String): Flow<List<ConversationEntity>>
 
     /**
-     * Get enriched conversations with profile icon data and display names.
-     * Combines conversation data with icon appearance from peer_icons table and nicknames from contacts.
-     *
-     * Display name priority (via COALESCE):
-     * 1. contacts.customNickname - User-set nickname (highest priority)
-     * 2. announces.peerName - Network broadcast name
-     * 3. conversations.peerName - Snapshot from conversation creation
-     * 4. conversations.peerHash - Fallback to hash (never null)
-     *
-     * Icons come from peer_icons table (populated from LXMF messages), not from announces
-     * (which are a Reticulum concept and don't contain icon data).
+     * Get enriched conversations with profile icon data from announces.
+     * Combines conversation data with icon appearance from announces table.
      */
     @Query(
         """
         SELECT
             c.peerHash,
             c.peerName,
-            COALESCE(ct.customNickname, a.peerName, c.peerName, c.peerHash) as displayName,
             c.peerPublicKey,
             c.lastMessage,
             c.lastMessageTimestamp,
             c.unreadCount,
-            pi.iconName as iconName,
-            pi.foregroundColor as iconForegroundColor,
-            pi.backgroundColor as iconBackgroundColor
+            a.iconName as iconName,
+            a.iconForegroundColor as iconForegroundColor,
+            a.iconBackgroundColor as iconBackgroundColor
         FROM conversations c
         LEFT JOIN announces a ON c.peerHash = a.destinationHash
-        LEFT JOIN contacts ct ON c.peerHash = ct.destinationHash AND c.identityHash = ct.identityHash
-        LEFT JOIN peer_icons pi ON c.peerHash = pi.destinationHash
         WHERE c.identityHash = :identityHash
         ORDER BY c.lastMessageTimestamp DESC
         """,
@@ -52,31 +40,23 @@ interface ConversationDao {
     fun getEnrichedConversations(identityHash: String): Flow<List<EnrichedConversation>>
 
     /**
-     * Search enriched conversations by display name (nickname, announce name, or peer name).
-     * Searches across all name sources for better discoverability.
+     * Search enriched conversations by peer name with profile icon data.
      */
     @Query(
         """
         SELECT
             c.peerHash,
             c.peerName,
-            COALESCE(ct.customNickname, a.peerName, c.peerName, c.peerHash) as displayName,
             c.peerPublicKey,
             c.lastMessage,
             c.lastMessageTimestamp,
             c.unreadCount,
-            pi.iconName as iconName,
-            pi.foregroundColor as iconForegroundColor,
-            pi.backgroundColor as iconBackgroundColor
+            a.iconName as iconName,
+            a.iconForegroundColor as iconForegroundColor,
+            a.iconBackgroundColor as iconBackgroundColor
         FROM conversations c
         LEFT JOIN announces a ON c.peerHash = a.destinationHash
-        LEFT JOIN contacts ct ON c.peerHash = ct.destinationHash AND c.identityHash = ct.identityHash
-        LEFT JOIN peer_icons pi ON c.peerHash = pi.destinationHash
-        WHERE c.identityHash = :identityHash
-            AND (ct.customNickname LIKE '%' || :query || '%'
-                OR a.peerName LIKE '%' || :query || '%'
-                OR c.peerName LIKE '%' || :query || '%'
-                OR c.peerHash LIKE '%' || :query || '%')
+        WHERE c.identityHash = :identityHash AND c.peerName LIKE '%' || :query || '%'
         ORDER BY c.lastMessageTimestamp DESC
         """,
     )

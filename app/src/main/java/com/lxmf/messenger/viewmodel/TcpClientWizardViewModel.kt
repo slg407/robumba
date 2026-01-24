@@ -34,8 +34,6 @@ enum class TcpClientWizardStep {
 data class TcpClientWizardState(
     // Wizard navigation
     val currentStep: TcpClientWizardStep = TcpClientWizardStep.SERVER_SELECTION,
-    // Edit mode - when non-null, we're editing an existing interface
-    val editingInterfaceId: Long? = null,
     // Server selection
     val selectedServer: TcpCommunityServer? = null,
     val isCustomMode: Boolean = false,
@@ -43,8 +41,6 @@ data class TcpClientWizardState(
     val interfaceName: String = "",
     val targetHost: String = "",
     val targetPort: String = "",
-    // RNS 1.1.x Bootstrap Interface option
-    val bootstrapOnly: Boolean = false,
     // Save state
     val isSaving: Boolean = false,
     val saveError: String? = null,
@@ -69,69 +65,6 @@ class TcpClientWizardViewModel
         val state: StateFlow<TcpClientWizardState> = _state.asStateFlow()
 
         /**
-         * Load an existing interface for editing.
-         * Tries to match against community servers to pre-select one.
-         */
-        fun loadExistingInterface(interfaceId: Long) {
-            viewModelScope.launch {
-                try {
-                    val entity = interfaceRepository.getInterfaceByIdOnce(interfaceId) ?: return@launch
-                    val config = interfaceRepository.entityToConfig(entity)
-
-                    if (config !is InterfaceConfig.TCPClient) {
-                        Log.e(TAG, "Interface $interfaceId is not a TCPClient")
-                        return@launch
-                    }
-
-                    // Try to find a matching community server
-                    val matchingServer = TcpCommunityServers.servers.find { server ->
-                        server.host == config.targetHost && server.port == config.targetPort
-                    }
-
-                    _state.update {
-                        it.copy(
-                            editingInterfaceId = interfaceId,
-                            selectedServer = matchingServer,
-                            isCustomMode = matchingServer == null,
-                            interfaceName = config.name,
-                            targetHost = config.targetHost,
-                            targetPort = config.targetPort.toString(),
-                            bootstrapOnly = config.bootstrapOnly,
-                        )
-                    }
-
-                    Log.d(TAG, "Loaded interface for editing: ${config.name}, matched server: ${matchingServer?.name}")
-                } catch (e: Exception) {
-                    Log.e(TAG, "Failed to load interface $interfaceId", e)
-                }
-            }
-        }
-
-        /**
-         * Set initial values when creating from a discovered interface.
-         */
-        fun setInitialValues(host: String, port: Int, name: String) {
-            // Check if this matches a community server
-            val matchingServer = TcpCommunityServers.servers.find { server ->
-                server.host == host && server.port == port
-            }
-
-            _state.update {
-                it.copy(
-                    selectedServer = matchingServer,
-                    isCustomMode = matchingServer == null,
-                    interfaceName = name,
-                    targetHost = host,
-                    targetPort = port.toString(),
-                    bootstrapOnly = matchingServer?.isBootstrap ?: false,
-                    // Skip to review step since we have all the info
-                    currentStep = TcpClientWizardStep.REVIEW_CONFIGURE,
-                )
-            }
-            Log.d(TAG, "Set initial values from discovered: $name @ $host:$port, matched server: ${matchingServer?.name}")
-        }
-
-        /**
          * Get the list of community servers.
          */
         fun getCommunityServers(): List<TcpCommunityServer> = TcpCommunityServers.servers
@@ -147,7 +80,6 @@ class TcpClientWizardViewModel
                     interfaceName = server.name,
                     targetHost = server.host,
                     targetPort = server.port.toString(),
-                    bootstrapOnly = server.isBootstrap,
                 )
             }
         }
@@ -163,17 +95,8 @@ class TcpClientWizardViewModel
                     interfaceName = "",
                     targetHost = "",
                     targetPort = "",
-                    bootstrapOnly = false,
                 )
             }
-        }
-
-        /**
-         * Toggle the bootstrap-only flag.
-         * Bootstrap interfaces auto-detach once sufficient discovered interfaces are connected.
-         */
-        fun toggleBootstrapOnly(enabled: Boolean) {
-            _state.update { it.copy(bootstrapOnly = enabled) }
         }
 
         /**
@@ -246,14 +169,9 @@ class TcpClientWizardViewModel
                 try {
                     val currentState = _state.value
                     val interfaceName = currentState.interfaceName.trim().ifEmpty { "TCP Connection" }
-                    val isEditing = currentState.editingInterfaceId != null
 
                     // Check for duplicate interface names before saving
-                    // Exclude current interface when editing
-                    val existingInterfaces = interfaceRepository.allInterfaceEntities.first()
-                    val existingNames = existingInterfaces
-                        .filter { it.id != currentState.editingInterfaceId }
-                        .map { it.name }
+                    val existingNames = interfaceRepository.allInterfaces.first().map { it.name }
                     when (
                         val uniqueResult =
                             InputValidator.validateInterfaceNameUniqueness(
@@ -281,16 +199,10 @@ class TcpClientWizardViewModel
                             targetPort = currentState.targetPort.toIntOrNull() ?: 4242,
                             kissFraming = false,
                             mode = "full",
-                            bootstrapOnly = currentState.bootstrapOnly,
                         )
 
-                    if (isEditing) {
-                        interfaceRepository.updateInterface(currentState.editingInterfaceId!!, config)
-                        Log.d(TAG, "Updated TCP Client interface: ${config.name}")
-                    } else {
-                        interfaceRepository.insertInterface(config)
-                        Log.d(TAG, "Saved TCP Client interface: ${config.name}")
-                    }
+                    interfaceRepository.insertInterface(config)
+                    Log.d(TAG, "Saved TCP Client interface: ${config.name}")
 
                     // Mark pending changes for InterfaceManagementScreen to show "Apply" button
                     configManager.setPendingChanges(true)

@@ -1,8 +1,5 @@
 package com.lxmf.messenger.ui.screens
 
-import com.lxmf.messenger.ui.screens.settings.cards.computeSharedInstanceToggleChecked
-import com.lxmf.messenger.ui.screens.settings.cards.isSharedInstanceToggleEnabled
-import com.lxmf.messenger.ui.screens.settings.cards.shouldShowSharedInstanceBanner
 import com.lxmf.messenger.ui.theme.PresetTheme
 import com.lxmf.messenger.viewmodel.SettingsState
 import org.junit.Assert.assertFalse
@@ -24,24 +21,31 @@ import org.junit.Test
  * - Can only switch TO shared instance if it's online or already using it
  */
 class SettingsScreenBannerVisibilityTest {
-    /** Wrapper to call production function with SettingsState */
-    private fun shouldShowBanner(state: SettingsState): Boolean {
-        return shouldShowSharedInstanceBanner(
-            isSharedInstance = state.isSharedInstance,
-            sharedInstanceOnline = state.sharedInstanceOnline,
-            wasUsingSharedInstance = state.wasUsingSharedInstance,
-            isRestarting = state.isRestarting,
-        )
+    /**
+     * Replicates the banner visibility logic from SettingsScreen.kt
+     */
+    private fun shouldShowSharedInstanceBanner(state: SettingsState): Boolean {
+        return state.isSharedInstance ||
+            state.sharedInstanceOnline ||
+            state.wasUsingSharedInstance ||
+            state.isRestarting
     }
 
-    /** Wrapper to call production function with SettingsState */
+    /**
+     * Replicates the toggle enable logic from SharedInstanceBannerCard.kt
+     * - When using shared (toggle OFF): can always switch to own (toggle ON)
+     * - When using own (toggle ON): can only switch to shared if it's available
+     */
     private fun isToggleEnabled(state: SettingsState): Boolean {
-        return isSharedInstanceToggleEnabled(state.isSharedInstance, state.sharedInstanceOnline)
+        return state.isSharedInstance || state.sharedInstanceOnline
     }
 
-    /** Wrapper to call production function with SettingsState */
+    /**
+     * Replicates the toggle checked logic from SharedInstanceBannerCard.kt
+     * Shows actual state (!isSharedInstance), not preference
+     */
     private fun computeToggleChecked(state: SettingsState): Boolean {
-        return computeSharedInstanceToggleChecked(state.isSharedInstance)
+        return !state.isSharedInstance // Toggle ON when using own instance
     }
 
     private fun createDefaultState() =
@@ -58,26 +62,26 @@ class SettingsScreenBannerVisibilityTest {
     @Test
     fun `banner shown when using shared instance`() {
         val state = createDefaultState().copy(isSharedInstance = true)
-        assertTrue(shouldShowBanner(state))
+        assertTrue(shouldShowSharedInstanceBanner(state))
     }
 
     @Test
     fun `banner shown when shared instance online`() {
         val state = createDefaultState().copy(sharedInstanceOnline = true)
-        assertTrue(shouldShowBanner(state))
+        assertTrue(shouldShowSharedInstanceBanner(state))
     }
 
     @Test
     fun `banner shown when wasUsingSharedInstance is true`() {
         // Informational state - was using shared instance but it went offline
         val state = createDefaultState().copy(wasUsingSharedInstance = true)
-        assertTrue(shouldShowBanner(state))
+        assertTrue(shouldShowSharedInstanceBanner(state))
     }
 
     @Test
     fun `banner shown when restarting`() {
         val state = createDefaultState().copy(isRestarting = true)
-        assertTrue(shouldShowBanner(state))
+        assertTrue(shouldShowSharedInstanceBanner(state))
     }
 
     @Test
@@ -89,7 +93,7 @@ class SettingsScreenBannerVisibilityTest {
                 wasUsingSharedInstance = false,
                 isRestarting = false,
             )
-        assertFalse(shouldShowBanner(state))
+        assertFalse(shouldShowSharedInstanceBanner(state))
     }
 
     @Test
@@ -102,7 +106,7 @@ class SettingsScreenBannerVisibilityTest {
                 sharedInstanceOnline = false,
                 preferOwnInstance = true,
             )
-        assertFalse(shouldShowBanner(state))
+        assertFalse(shouldShowSharedInstanceBanner(state))
     }
 
     @Test
@@ -112,7 +116,7 @@ class SettingsScreenBannerVisibilityTest {
                 isSharedInstance = true,
                 sharedInstanceOnline = true,
             )
-        assertTrue(shouldShowBanner(state))
+        assertTrue(shouldShowSharedInstanceBanner(state))
     }
 
     // ==========================================
@@ -177,7 +181,7 @@ class SettingsScreenBannerVisibilityTest {
                 isSharedInstance = true,
                 sharedInstanceOnline = true,
             )
-        assertTrue("Banner should show when shared instance is active", shouldShowBanner(state))
+        assertTrue("Banner should show when shared instance is active", shouldShowSharedInstanceBanner(state))
     }
 
     @Test
@@ -189,7 +193,7 @@ class SettingsScreenBannerVisibilityTest {
                 sharedInstanceOnline = false,
                 preferOwnInstance = false,
             )
-        assertFalse("Banner should be hidden when no shared instance", shouldShowBanner(state))
+        assertFalse("Banner should be hidden when no shared instance", shouldShowSharedInstanceBanner(state))
     }
 
     @Test
@@ -202,7 +206,7 @@ class SettingsScreenBannerVisibilityTest {
                 sharedInstanceOnline = false, // Shared died
             )
         // Banner hidden (no shared instance online)
-        assertFalse("Banner should hide when shared offline", shouldShowBanner(state))
+        assertFalse("Banner should hide when shared offline", shouldShowSharedInstanceBanner(state))
         // Toggle would be disabled IF banner was shown
         assertFalse("Toggle should be disabled", isToggleEnabled(state))
     }
@@ -218,7 +222,7 @@ class SettingsScreenBannerVisibilityTest {
                 wasUsingSharedInstance = true, // Tracking that we were using shared
                 sharedInstanceOnline = false, // Shared is offline
             )
-        assertTrue("Banner should show with informational state", shouldShowBanner(state))
+        assertTrue("Banner should show with informational state", shouldShowSharedInstanceBanner(state))
     }
 
     @Test
@@ -230,7 +234,7 @@ class SettingsScreenBannerVisibilityTest {
                 sharedInstanceOnline = true, // Shared became available
                 sharedInstanceAvailable = true, // Notification triggered
             )
-        assertTrue("Banner should show when shared becomes available", shouldShowBanner(state))
+        assertTrue("Banner should show when shared becomes available", shouldShowSharedInstanceBanner(state))
         assertTrue("Toggle should be enabled to switch to shared", isToggleEnabled(state))
     }
 
@@ -251,7 +255,7 @@ class SettingsScreenBannerVisibilityTest {
             )
 
         // Banner should show (shared is online)
-        assertTrue("Banner should show", shouldShowBanner(state))
+        assertTrue("Banner should show", shouldShowSharedInstanceBanner(state))
 
         // The toggle should show the ACTUAL state (using own), not preference
         val toggleChecked = computeToggleChecked(state)

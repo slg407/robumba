@@ -58,7 +58,7 @@ import java.util.Locale
 @Composable
 fun InterfaceStatsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToEdit: (Long, String) -> Unit,
+    onNavigateToEdit: (Long) -> Unit,
     viewModel: InterfaceStatsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -104,12 +104,7 @@ fun InterfaceStatsScreen(
                     StatsContent(
                         state = state,
                         onToggleEnabled = { viewModel.toggleEnabled() },
-                        onEdit = {
-                            onNavigateToEdit(
-                                state.interfaceEntity!!.id,
-                                state.interfaceEntity!!.type,
-                            )
-                        },
+                        onEdit = { onNavigateToEdit(state.interfaceEntity!!.id) },
                         onRequestUsbPermission = { viewModel.requestUsbPermission() },
                     )
                 }
@@ -150,10 +145,6 @@ private fun StatsContent(
     onRequestUsbPermission: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    val interfaceType = state.interfaceEntity?.type
-
-    // Interfaces that support editing
-    val supportsEdit = interfaceType in listOf("TCPClient", "TCPServer", "RNode")
 
     Column(
         modifier = Modifier
@@ -185,7 +176,7 @@ private fun StatsContent(
         }
 
         // RNode Settings Card (only for RNode interfaces)
-        if (interfaceType == "RNode") {
+        if (state.interfaceEntity?.type == "RNode") {
             RNodeSettingsCard(
                 frequency = state.frequency,
                 bandwidth = state.bandwidth,
@@ -204,16 +195,14 @@ private fun StatsContent(
             snr = state.snr,
         )
 
-        // Action Buttons - only show Edit for interfaces that support it
-        if (supportsEdit) {
-            OutlinedButton(
-                onClick = onEdit,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Edit Configuration")
-            }
+        // Action Buttons
+        OutlinedButton(
+            onClick = onEdit,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Edit Configuration")
         }
     }
 }

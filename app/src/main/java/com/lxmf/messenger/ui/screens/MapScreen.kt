@@ -1,19 +1,16 @@
 package com.lxmf.messenger.ui.screens
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.location.Location
 import android.os.Looper
 import android.util.Log
 import android.view.Gravity
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,28 +24,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.ShareLocation
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.WifiOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -68,10 +56,8 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -108,34 +94,12 @@ import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.expressions.Expression
 import org.maplibre.android.style.layers.CircleLayer
-import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.layers.SymbolLayer
 import org.maplibre.android.style.sources.GeoJsonSource
 import org.maplibre.geojson.Feature
 import org.maplibre.geojson.FeatureCollection
 import org.maplibre.geojson.Point
-
-/**
- * Empty MapLibre style JSON that shows a blank map with no tiles.
- * Used when HTTP map source is disabled and no offline maps are available.
- */
-private const val EMPTY_MAP_STYLE = """
-{
-    "version": 8,
-    "name": "Empty",
-    "sources": {},
-    "layers": [
-        {
-            "id": "background",
-            "type": "background",
-            "paint": {
-                "background-color": "#f0f0f0"
-            }
-        }
-    ]
-}
-"""
 
 /**
  * Map screen displaying user location and contact markers.
@@ -156,18 +120,6 @@ fun MapScreen(
     viewModel: MapViewModel = hiltViewModel(),
     onNavigateToConversation: (destinationHash: String) -> Unit = {},
     onNavigateToOfflineMaps: () -> Unit = {},
-    onNavigateToRNodeWizardWithParams: (
-        frequency: Long?,
-        bandwidth: Int?,
-        spreadingFactor: Int?,
-        codingRate: Int?,
-    ) -> Unit = { _, _, _, _ -> },
-    // Optional focus location - if provided, map will center here with a marker
-    focusLatitude: Double? = null,
-    focusLongitude: Double? = null,
-    focusLabel: String? = null,
-    // Optional full interface details for bottom sheet
-    focusInterfaceDetails: FocusInterfaceDetails? = null,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -180,7 +132,6 @@ fun MapScreen(
             !state.hasUserDismissedPermissionSheet
     var showShareLocationSheet by remember { mutableStateOf(false) }
     var selectedMarker by remember { mutableStateOf<ContactMarker?>(null) }
-    var showFocusInterfaceSheet by remember { mutableStateOf(false) }
     val permissionSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val shareLocationSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val contactLocationSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -190,49 +141,6 @@ fun MapScreen(
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var mapStyleLoaded by remember { mutableStateOf(false) }
     var metersPerPixel by remember { mutableStateOf(1.0) }
-
-    // Helper function to set up map style after it loads
-    // Extracted to avoid duplication between factory and LaunchedEffect callbacks
-    fun onMapStyleLoaded(
-        map: MapLibreMap,
-        style: Style,
-        ctx: Context,
-        hasLocationPermission: Boolean,
-    ) {
-        val density = ctx.resources.displayMetrics.density
-
-        // Add dashed circle bitmap for stale markers (if not already present)
-        if (style.getImage("stale-dashed-circle") == null) {
-            val staleCircleBitmap =
-                MarkerBitmapFactory.createDashedCircle(
-                    sizeDp = 28f,
-                    strokeWidthDp = 3f,
-                    color = android.graphics.Color.parseColor("#E0E0E0"),
-                    dashLengthDp = 4f,
-                    gapLengthDp = 3f,
-                    density = density,
-                )
-            style.addImage("stale-dashed-circle", staleCircleBitmap)
-            Log.d("MapScreen", "Added stale-dashed-circle image to style")
-        }
-
-        // Enable user location component (blue dot)
-        if (hasLocationPermission) {
-            @SuppressLint("MissingPermission")
-            map.locationComponent.apply {
-                activateLocationComponent(
-                    LocationComponentActivationOptions
-                        .builder(ctx, style)
-                        .build(),
-                )
-                isLocationComponentEnabled = true
-                cameraMode = CameraMode.NONE
-                renderMode = RenderMode.COMPASS
-            }
-        }
-
-        mapStyleLoaded = true
-    }
 
     // Location client
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
@@ -262,34 +170,19 @@ fun MapScreen(
     // Center map on user location once when both map and location are ready
     // Key on both so we catch whichever becomes available last, but only center once
     var hasInitiallyCentered by remember { mutableStateOf(false) }
-
-    // If focus coordinates are provided, center on them instead of user location
-    LaunchedEffect(mapLibreMap, focusLatitude, focusLongitude) {
-        val map = mapLibreMap ?: return@LaunchedEffect
-        val hasFocusCoordinates = focusLatitude != null && focusLongitude != null
-        if (!hasInitiallyCentered && hasFocusCoordinates) {
-            val cameraPosition =
-                CameraPosition.Builder()
-                    .target(LatLng(focusLatitude!!, focusLongitude!!))
-                    .zoom(14.0)
-                    .build()
-            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-            hasInitiallyCentered = true
-        }
-    }
-
-    // Fall back to user location if no focus coordinates
     LaunchedEffect(mapLibreMap, state.userLocation != null) {
-        val map = mapLibreMap ?: return@LaunchedEffect
-        val location = state.userLocation ?: return@LaunchedEffect
-        if (!hasInitiallyCentered && focusLatitude == null) {
-            val cameraPosition =
-                CameraPosition.Builder()
-                    .target(LatLng(location.latitude, location.longitude))
-                    .zoom(15.0)
-                    .build()
-            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-            hasInitiallyCentered = true
+        if (!hasInitiallyCentered && mapLibreMap != null && state.userLocation != null) {
+            state.userLocation?.let { location ->
+                mapLibreMap?.let { map ->
+                    val cameraPosition =
+                        CameraPosition.Builder()
+                            .target(LatLng(location.latitude, location.longitude))
+                            .zoom(15.0)
+                            .build()
+                    map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+                    hasInitiallyCentered = true
+                }
+            }
         }
     }
 
@@ -316,36 +209,21 @@ fun MapScreen(
         }
     }
 
-    // Reload map style when mapStyleResult changes (e.g., after offline map download or settings change)
-    // Also triggers on tab restoration when mapLibreMap is restored
+    // Reload map style when mapStyleResult changes (e.g., after offline map download)
+    // No mapStyleLoaded guard needed - setStyle can be called anytime and replaces any loading style
     LaunchedEffect(state.mapStyleResult, mapLibreMap) {
         val map = mapLibreMap ?: return@LaunchedEffect
         val styleResult = state.mapStyleResult ?: return@LaunchedEffect
 
-        // Control MapLibre's network connectivity based on style result
-        // When Offline or Unavailable, prevent any network requests for tiles
-        val allowNetwork = styleResult is MapStyleResult.Online || styleResult is MapStyleResult.Rmsp
-        MapLibre.setConnected(allowNetwork)
-        Log.d("MapScreen", "MapLibre network connectivity: $allowNetwork")
-
         val styleBuilder =
             when (styleResult) {
                 is MapStyleResult.Online -> Style.Builder().fromUri(styleResult.styleUrl)
-                is MapStyleResult.Offline -> Style.Builder().fromUri(styleResult.styleUrl)
+                is MapStyleResult.Offline -> Style.Builder().fromJson(styleResult.styleJson)
                 is MapStyleResult.Rmsp -> Style.Builder().fromUri(MapTileSourceManager.DEFAULT_STYLE_URL)
-                is MapStyleResult.Unavailable -> {
-                    // Set an empty style to clear the map - don't load HTTP tiles
-                    Log.d("MapScreen", "Style unavailable: ${styleResult.reason}, clearing map")
-                    Style.Builder().fromJson(EMPTY_MAP_STYLE)
-                }
+                is MapStyleResult.Unavailable -> Style.Builder().fromUri(MapTileSourceManager.DEFAULT_STYLE_URL)
             }
         Log.d("MapScreen", "Applying style: ${styleResult.javaClass.simpleName}")
-        // Reset mapStyleLoaded before applying new style
-        mapStyleLoaded = false
-        map.setStyle(styleBuilder) { style ->
-            Log.d("MapScreen", "Style loaded (from LaunchedEffect): ${styleResult.javaClass.simpleName}")
-            onMapStyleLoaded(map, style, context, state.hasLocationPermission)
-        }
+        map.setStyle(styleBuilder)
     }
 
     // Proper MapView lifecycle management
@@ -405,21 +283,11 @@ fun MapScreen(
                         }
 
                         // Load map style based on settings (offline, HTTP, or RMSP)
-                        // When Unavailable, load an empty style to clear the map
                         val styleResult = state.mapStyleResult
-
-                        // Control MapLibre's network connectivity based on style result
-                        // When Offline or Unavailable, prevent any network requests for tiles
-                        val allowNetwork = styleResult is MapStyleResult.Online ||
-                            styleResult is MapStyleResult.Rmsp ||
-                            styleResult == null // Default to online if not yet resolved
-                        MapLibre.setConnected(allowNetwork)
-                        Log.d("MapScreen", "Initial MapLibre network connectivity: $allowNetwork")
-
                         val styleBuilder =
                             when (styleResult) {
                                 is MapStyleResult.Online -> Style.Builder().fromUri(styleResult.styleUrl)
-                                is MapStyleResult.Offline -> Style.Builder().fromUri(styleResult.styleUrl)
+                                is MapStyleResult.Offline -> Style.Builder().fromJson(styleResult.styleJson)
                                 is MapStyleResult.Rmsp -> {
                                     // For RMSP, use default HTTP as fallback (RMSP rendering not yet implemented)
                                     Log.d("MapScreen", "RMSP style requested, using HTTP fallback")
@@ -427,32 +295,48 @@ fun MapScreen(
                                 }
                                 is MapStyleResult.Unavailable -> {
                                     Log.w("MapScreen", "No map source available: ${styleResult.reason}")
-                                    // Load empty style to clear the map
-                                    Style.Builder().fromJson(EMPTY_MAP_STYLE)
+                                    Style.Builder().fromUri(MapTileSourceManager.DEFAULT_STYLE_URL)
                                 }
                                 null -> Style.Builder().fromUri(MapTileSourceManager.DEFAULT_STYLE_URL)
                             }
                         map.setStyle(styleBuilder) { style ->
                             Log.d("MapScreen", "Map style loaded: ${styleResult?.javaClass?.simpleName ?: "default"}")
-                            onMapStyleLoaded(map, style, ctx, state.hasLocationPermission)
+
+                            // Add dashed circle bitmaps for stale markers
+                            val density = ctx.resources.displayMetrics.density
+                            val staleCircleBitmap =
+                                MarkerBitmapFactory.createDashedCircle(
+                                    sizeDp = 28f,
+                                    strokeWidthDp = 3f,
+                                    color = android.graphics.Color.parseColor("#E0E0E0"),
+                                    dashLengthDp = 4f,
+                                    gapLengthDp = 3f,
+                                    density = density,
+                                )
+                            style.addImage("stale-dashed-circle", staleCircleBitmap)
+                            Log.d("MapScreen", "Added stale-dashed-circle image to style")
+
+                            mapStyleLoaded = true
+
+                            // Enable user location component (blue dot)
+                            if (state.hasLocationPermission) {
+                                @SuppressLint("MissingPermission")
+                                map.locationComponent.apply {
+                                    activateLocationComponent(
+                                        LocationComponentActivationOptions
+                                            .builder(ctx, style)
+                                            .build(),
+                                    )
+                                    isLocationComponentEnabled = true
+                                    cameraMode = CameraMode.NONE
+                                    renderMode = RenderMode.COMPASS
+                                }
+                            }
                         }
 
-                        // Add click listener for contact markers and focus marker
+                        // Add click listener for contact markers
                         map.addOnMapClickListener { latLng ->
                             val screenPoint = map.projection.toScreenLocation(latLng)
-
-                            // Check for focus marker click first
-                            val focusFeatures = map.queryRenderedFeatures(
-                                screenPoint,
-                                "focus-marker-layer",
-                            )
-                            if (focusFeatures.isNotEmpty() && focusInterfaceDetails != null) {
-                                showFocusInterfaceSheet = true
-                                Log.d("MapScreen", "Focus marker tapped: ${focusInterfaceDetails.name}")
-                                return@addOnMapClickListener true
-                            }
-
-                            // Check for contact marker click
                             val features =
                                 map.queryRenderedFeatures(
                                     screenPoint,
@@ -649,60 +533,6 @@ fun MapScreen(
             }
         }
 
-        // Add focus marker for discovered interface location (if provided)
-        LaunchedEffect(focusLatitude, focusLongitude, focusLabel, mapStyleLoaded) {
-            if (!mapStyleLoaded) return@LaunchedEffect
-            if (focusLatitude == null || focusLongitude == null) return@LaunchedEffect
-            val map = mapLibreMap ?: return@LaunchedEffect
-            val style = map.style ?: return@LaunchedEffect
-
-            val sourceId = "focus-marker-source"
-            val layerId = "focus-marker-layer"
-            val screenDensity = context.resources.displayMetrics.density
-
-            // Create a marker bitmap for the focus location
-            val imageId = "focus-marker-image"
-            if (style.getImage(imageId) == null) {
-                val label = focusLabel ?: "Location"
-                val initial = label.firstOrNull() ?: 'L'
-                val bitmap = MarkerBitmapFactory.createInitialMarker(
-                    initial = initial,
-                    displayName = label,
-                    backgroundColor = android.graphics.Color.parseColor("#E91E63"), // Pink/Magenta for visibility
-                    density = screenDensity,
-                )
-                style.addImage(imageId, bitmap)
-            }
-
-            // Create GeoJSON feature for the focus marker
-            val feature = Feature.fromGeometry(
-                Point.fromLngLat(focusLongitude, focusLatitude),
-            ).apply {
-                addStringProperty("name", focusLabel ?: "Location")
-                addStringProperty("imageId", imageId)
-            }
-            val featureCollection = FeatureCollection.fromFeatures(listOf(feature))
-
-            // Update or create the source
-            val existingSource = style.getSourceAs<GeoJsonSource>(sourceId)
-            if (existingSource != null) {
-                existingSource.setGeoJson(featureCollection)
-            } else {
-                style.addSource(GeoJsonSource(sourceId, featureCollection))
-
-                // Add symbol layer for the focus marker
-                style.addLayer(
-                    SymbolLayer(layerId, sourceId).withProperties(
-                        PropertyFactory.iconImage(Expression.get("imageId")),
-                        PropertyFactory.iconAllowOverlap(true),
-                        PropertyFactory.iconIgnorePlacement(true),
-                        PropertyFactory.iconAnchor(Property.ICON_ANCHOR_BOTTOM),
-                    ),
-                )
-            }
-            Log.d("MapScreen", "Added focus marker at $focusLatitude, $focusLongitude for $focusLabel")
-        }
-
         // Gradient scrim behind TopAppBar for readability
         Box(
             modifier =
@@ -861,22 +691,6 @@ fun MapScreen(
             )
         }
 
-        // Show overlay when no map source is available (HTTP disabled, no offline maps)
-        // Track dismissal locally - resets when map style changes
-        var isOverlayDismissed by remember(state.mapStyleResult) { mutableStateOf(false) }
-        if (state.mapStyleResult is MapStyleResult.Unavailable && !isOverlayDismissed) {
-            NoMapSourceOverlay(
-                reason = (state.mapStyleResult as MapStyleResult.Unavailable).reason,
-                onEnableHttp = { viewModel.enableHttp() },
-                onNavigateToOfflineMaps = onNavigateToOfflineMaps,
-                onDismiss = { isOverlayDismissed = true },
-                modifier =
-                    Modifier
-                        .align(Alignment.Center)
-                        .padding(32.dp),
-            )
-        }
-
         // Loading indicator
         if (state.isLoading) {
             Box(
@@ -930,310 +744,6 @@ fun MapScreen(
             },
             sheetState = contactLocationSheetState,
         )
-    }
-
-    // Bottom sheet for focus interface details (discovered interface)
-    if (showFocusInterfaceSheet && focusInterfaceDetails != null) {
-        FocusInterfaceBottomSheet(
-            details = focusInterfaceDetails,
-            onDismiss = { showFocusInterfaceSheet = false },
-            onCopyLoraParams = {
-                val params = formatLoraParamsForClipboard(focusInterfaceDetails)
-                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
-                    as android.content.ClipboardManager
-                val clip = android.content.ClipData.newPlainText("LoRa Parameters", params)
-                clipboard.setPrimaryClip(clip)
-                Toast.makeText(context, "LoRa parameters copied", Toast.LENGTH_SHORT).show()
-            },
-            onUseForNewRNode = {
-                showFocusInterfaceSheet = false
-                onNavigateToRNodeWizardWithParams(
-                    focusInterfaceDetails.frequency,
-                    focusInterfaceDetails.bandwidth,
-                    focusInterfaceDetails.spreadingFactor,
-                    focusInterfaceDetails.codingRate,
-                )
-            },
-        )
-    }
-}
-
-/**
- * Bottom sheet showing discovered interface details when the focus marker is tapped.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun FocusInterfaceBottomSheet(
-    details: FocusInterfaceDetails,
-    onDismiss: () -> Unit,
-    onCopyLoraParams: () -> Unit,
-    onUseForNewRNode: () -> Unit,
-) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surface,
-    ) {
-        FocusInterfaceContent(
-            details = details,
-            onCopyLoraParams = onCopyLoraParams,
-            onUseForNewRNode = onUseForNewRNode,
-        )
-    }
-}
-
-/**
- * Content for the focus interface bottom sheet.
- * Extracted for testability since ModalBottomSheet is difficult to test in Robolectric.
- */
-@Composable
-internal fun FocusInterfaceContent(
-    details: FocusInterfaceDetails,
-    onCopyLoraParams: () -> Unit = {},
-    onUseForNewRNode: () -> Unit = {},
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-            // Header with name and type
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = details.name,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = details.type,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                details.status?.let { status ->
-                    Surface(
-                        color = when (status.lowercase()) {
-                            "available" -> MaterialTheme.colorScheme.primaryContainer
-                            "unknown" -> MaterialTheme.colorScheme.tertiaryContainer
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        },
-                        shape = RoundedCornerShape(16.dp),
-                    ) {
-                        Text(
-                            text = status.replaceFirstChar { it.uppercase() },
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = when (status.lowercase()) {
-                                "available" -> MaterialTheme.colorScheme.onPrimaryContainer
-                                "unknown" -> MaterialTheme.colorScheme.onTertiaryContainer
-                                else -> MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                        )
-                    }
-                }
-            }
-
-            HorizontalDivider()
-
-            // Location info
-            InterfaceDetailRow(
-                label = "Location",
-                value = "%.4f, %.4f".format(details.latitude, details.longitude),
-            )
-            details.height?.let { height ->
-                InterfaceDetailRow(
-                    label = "Altitude",
-                    value = "${height.toInt()} m",
-                )
-            }
-
-            // Radio parameters (if LoRa interface)
-            if (details.frequency != null) {
-                HorizontalDivider()
-                Text(
-                    text = "Radio Parameters",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                InterfaceDetailRow(
-                    label = "Frequency",
-                    value = "%.3f MHz".format(details.frequency / 1_000_000.0),
-                )
-                details.bandwidth?.let { bw ->
-                    InterfaceDetailRow(
-                        label = "Bandwidth",
-                        value = "$bw kHz",
-                    )
-                }
-                details.spreadingFactor?.let { sf ->
-                    InterfaceDetailRow(
-                        label = "Spreading Factor",
-                        value = "SF$sf",
-                    )
-                }
-                details.codingRate?.let { cr ->
-                    InterfaceDetailRow(
-                        label = "Coding Rate",
-                        value = "4/$cr",
-                    )
-                }
-                details.modulation?.let { mod ->
-                    InterfaceDetailRow(
-                        label = "Modulation",
-                        value = mod,
-                    )
-                }
-            }
-
-            // TCP parameters (if TCP interface)
-            if (details.reachableOn != null) {
-                HorizontalDivider()
-                Text(
-                    text = "Network",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                InterfaceDetailRow(
-                    label = "Host",
-                    value = details.reachableOn,
-                )
-                details.port?.let { port ->
-                    InterfaceDetailRow(
-                        label = "Port",
-                        value = port.toString(),
-                    )
-                }
-            }
-
-            // Status details
-            if (details.lastHeard != null || details.hops != null) {
-                HorizontalDivider()
-                Text(
-                    text = "Status",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                details.lastHeard?.let { timestamp ->
-                    val timeAgo = formatTimeAgo(timestamp)
-                    InterfaceDetailRow(
-                        label = "Last Heard",
-                        value = timeAgo,
-                    )
-                }
-                details.hops?.let { hops ->
-                    InterfaceDetailRow(
-                        label = "Hops",
-                        value = hops.toString(),
-                    )
-                }
-            }
-
-            // LoRa params buttons (only for radio interfaces with frequency info)
-            if (details.frequency != null) {
-                HorizontalDivider()
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    // Copy button
-                    OutlinedButton(
-                        onClick = onCopyLoraParams,
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ContentCopy,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Copy Params")
-                    }
-                    // Use for New RNode button
-                    Button(
-                        onClick = onUseForNewRNode,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                        ),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Radio,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Use for RNode")
-                    }
-                }
-            }
-        }
-}
-
-/**
- * Format LoRa parameters for clipboard.
- */
-internal fun formatLoraParamsForClipboard(details: FocusInterfaceDetails): String {
-    return buildString {
-        appendLine("LoRa Parameters from: ${details.name}")
-        appendLine("---")
-        details.frequency?.let { freq ->
-            appendLine("Frequency: ${freq / 1_000_000.0} MHz")
-        }
-        details.bandwidth?.let { bw ->
-            appendLine("Bandwidth: ${bw / 1000} kHz")
-        }
-        details.spreadingFactor?.let { sf ->
-            appendLine("Spreading Factor: SF$sf")
-        }
-        details.codingRate?.let { cr ->
-            appendLine("Coding Rate: 4/$cr")
-        }
-        details.modulation?.let { mod ->
-            appendLine("Modulation: $mod")
-        }
-    }.trim()
-}
-
-@Composable
-internal fun InterfaceDetailRow(
-    label: String,
-    value: String,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-        )
-    }
-}
-
-internal fun formatTimeAgo(timestamp: Long): String {
-    val now = System.currentTimeMillis() / 1000
-    val diff = now - timestamp
-    return when {
-        diff < 60 -> "Just now"
-        diff < 3600 -> "${diff / 60} min ago"
-        diff < 86400 -> "${diff / 3600} hours ago"
-        else -> "${diff / 86400} days ago"
     }
 }
 
@@ -1299,90 +809,6 @@ internal fun EmptyMapStateCard(
 }
 
 /**
- * Overlay shown when no map source is available (HTTP disabled, no offline maps covering area).
- * Provides options to enable HTTP or download offline maps, and can be dismissed.
- */
-@Composable
-internal fun NoMapSourceOverlay(
-    reason: String,
-    onEnableHttp: () -> Unit,
-    onNavigateToOfflineMaps: () -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors =
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-    ) {
-        Box {
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
-                        .padding(top = 8.dp), // Extra top padding for close button
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.WifiOff,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(48.dp),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "No Map Source Enabled",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = reason,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    onClick = onEnableHttp,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Enable HTTP Map Source")
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "or",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                androidx.compose.material3.TextButton(
-                    onClick = onNavigateToOfflineMaps,
-                ) {
-                    Text("Download Offline Maps First")
-                }
-            }
-            // Close button in top-right corner
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier.align(Alignment.TopEnd),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Dismiss",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-}
-
-/**
  * Start location updates using FusedLocationProviderClient.
  */
 @SuppressLint("MissingPermission")
@@ -1433,7 +859,7 @@ private fun startLocationUpdates(
  * @param modifier Modifier for positioning
  */
 @Composable
-internal fun ScaleBar(
+private fun ScaleBar(
     metersPerPixel: Double,
     modifier: Modifier = Modifier,
 ) {

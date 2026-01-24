@@ -226,8 +226,6 @@ class StartupConfigLoaderTest {
                 preferOwn = true,
                 rpcKey = "key",
                 transport = false,
-                discoverInterfaces = false,
-                autoconnectDiscoveredCount = 0,
             )
         val config2 =
             StartupConfigLoader.StartupConfig(
@@ -236,8 +234,6 @@ class StartupConfigLoaderTest {
                 preferOwn = true,
                 rpcKey = "key",
                 transport = false,
-                discoverInterfaces = false,
-                autoconnectDiscoveredCount = 0,
             )
         val config3 =
             StartupConfigLoader.StartupConfig(
@@ -246,8 +242,6 @@ class StartupConfigLoaderTest {
                 preferOwn = false,
                 rpcKey = null,
                 transport = true,
-                discoverInterfaces = true,
-                autoconnectDiscoveredCount = 5,
             )
 
         assertEquals(config1, config2)

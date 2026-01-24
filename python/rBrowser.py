@@ -23,9 +23,8 @@ from flask import Flask
 
 from rbrowser.routes import register_routes
 from rbrowser.web_browser import NomadNetWebBrowser
-target.path = join(os.environ["HOME"], "rBrowser")
-os.mkdir(target.path)
-os.chdir(target.path)
+target_path = os.environ["HOME"]
+os.chdir(target_path)
 
 
 # Ensure UTF-8 output for Windows console

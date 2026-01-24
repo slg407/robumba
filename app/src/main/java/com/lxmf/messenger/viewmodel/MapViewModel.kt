@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lxmf.messenger.data.db.dao.AnnounceDao
 import com.lxmf.messenger.data.db.dao.ReceivedLocationDao
-import com.lxmf.messenger.data.model.EnrichedAnnounce
 import com.lxmf.messenger.data.model.EnrichedContact
 import com.lxmf.messenger.data.repository.ContactRepository
 import com.lxmf.messenger.map.MapStyleResult
@@ -150,13 +149,6 @@ class MapViewModel
                 }
             }
 
-            // Refresh map style when HTTP setting changes
-            viewModelScope.launch {
-                mapTileSourceManager.httpEnabledFlow.collect {
-                    refreshMapStyle()
-                }
-            }
-
             // Collect location permission sheet dismissal state
             viewModelScope.launch {
                 settingsRepository.hasDismissedLocationPermissionSheetFlow.collect { dismissed ->
@@ -168,12 +160,11 @@ class MapViewModel
             // Combines with both contacts and announces for display name lookup
             // Uses unfiltered query - filtering for stale/expired done in ViewModel
             // Refresh trigger causes periodic recalculation of staleness
-            // Uses enriched announces (with icon data from peer_icons table) for marker display
             viewModelScope.launch {
                 combine(
                     receivedLocationDao.getLatestLocationsPerSenderUnfiltered(),
                     contacts,
-                    announceDao.getEnrichedAnnounces(),
+                    announceDao.getAllAnnounces(),
                     _refreshTrigger,
                 ) { locations, contactList, announceList, _ ->
                     val currentTime = System.currentTimeMillis()
@@ -302,20 +293,6 @@ class MapViewModel
         fun refreshMapStyle() {
             val location = _state.value.userLocation
             resolveMapStyle(location?.latitude, location?.longitude)
-        }
-
-        /**
-         * Enable HTTP map source and refresh the map style.
-         * Called from the "No Map Source" overlay.
-         * Clears the "enabled for download" flag since user explicitly wants HTTP enabled.
-         */
-        fun enableHttp() {
-            viewModelScope.launch {
-                // Clear the flag - user is explicitly choosing to enable HTTP
-                settingsRepository.setHttpEnabledForDownload(false)
-                mapTileSourceManager.setHttpEnabled(true)
-                refreshMapStyle()
-            }
         }
 
         /**

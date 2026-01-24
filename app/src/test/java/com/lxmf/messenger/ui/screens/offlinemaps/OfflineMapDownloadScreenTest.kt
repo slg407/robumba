@@ -60,8 +60,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -87,8 +85,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -113,8 +109,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -139,8 +133,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -165,8 +157,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -192,8 +182,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -218,8 +206,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -244,8 +230,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -270,8 +254,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -302,8 +284,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -329,8 +309,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -355,8 +333,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -384,8 +360,6 @@ class OfflineMapDownloadScreenTest {
                 onAddressQueryChange = {},
                 onSearchAddress = {},
                 onSelectAddressResult = {},
-                httpEnabled = true,
-                onEnableHttp = {},
                 onNext = {},
             )
         }
@@ -561,9 +535,7 @@ class OfflineMapDownloadScreenTest {
                 estimatedTileCount = 1000L,
                 estimatedSize = "15 MB",
                 name = "",
-                httpEnabled = true,
                 onNameChange = {},
-                onEnableHttp = {},
                 onStartDownload = {},
                 onBack = {},
             )
@@ -585,9 +557,7 @@ class OfflineMapDownloadScreenTest {
                 estimatedTileCount = 1000L,
                 estimatedSize = "15 MB",
                 name = "Test Region",
-                httpEnabled = true,
                 onNameChange = {},
-                onEnableHttp = {},
                 onStartDownload = {},
                 onBack = {},
             )
@@ -614,9 +584,7 @@ class OfflineMapDownloadScreenTest {
                 estimatedTileCount = 1000L,
                 estimatedSize = "15 MB",
                 name = "Test",
-                httpEnabled = true,
                 onNameChange = {},
-                onEnableHttp = {},
                 onStartDownload = {},
                 onBack = {},
             )
@@ -637,9 +605,7 @@ class OfflineMapDownloadScreenTest {
                 estimatedTileCount = 1000L,
                 estimatedSize = "15 MB",
                 name = "",
-                httpEnabled = true,
                 onNameChange = {},
-                onEnableHttp = {},
                 onStartDownload = {},
                 onBack = {},
             )
@@ -660,9 +626,7 @@ class OfflineMapDownloadScreenTest {
                 estimatedTileCount = 1000L,
                 estimatedSize = "15 MB",
                 name = "My Region",
-                httpEnabled = true,
                 onNameChange = {},
-                onEnableHttp = {},
                 onStartDownload = {},
                 onBack = {},
             )
@@ -685,9 +649,7 @@ class OfflineMapDownloadScreenTest {
                 estimatedTileCount = 1000L,
                 estimatedSize = "15 MB",
                 name = "Test",
-                httpEnabled = true,
                 onNameChange = {},
-                onEnableHttp = {},
                 onStartDownload = { downloadStarted = true },
                 onBack = {},
             )

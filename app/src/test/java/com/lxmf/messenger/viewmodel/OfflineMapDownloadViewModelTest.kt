@@ -7,8 +7,6 @@ import app.cash.turbine.test
 import com.lxmf.messenger.data.repository.OfflineMapRegion
 import com.lxmf.messenger.data.repository.OfflineMapRegionRepository
 import com.lxmf.messenger.map.MapLibreOfflineManager
-import com.lxmf.messenger.map.MapTileSourceManager
-import com.lxmf.messenger.repository.SettingsRepository
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -18,7 +16,6 @@ import io.mockk.slot
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -62,10 +59,6 @@ class OfflineMapDownloadViewModelTest {
     private lateinit var context: Context
     private lateinit var offlineMapRegionRepository: OfflineMapRegionRepository
     private val mockMapLibreOfflineManager: MapLibreOfflineManager = mockk(relaxed = true)
-    private val mockMapTileSourceManager: MapTileSourceManager = mockk(relaxed = true)
-    private val mockSettingsRepository: SettingsRepository = mockk(relaxed = true)
-    private val httpEnabledFlow = MutableStateFlow(true)
-    private val httpEnabledForDownloadFlow = MutableStateFlow(false)
     private lateinit var viewModel: OfflineMapDownloadViewModel
 
     @Before
@@ -77,12 +70,6 @@ class OfflineMapDownloadViewModelTest {
 
         // Setup MapLibreOfflineManager mock behavior
         every { mockMapLibreOfflineManager.estimateTileCount(any(), any(), any()) } returns 100L
-
-        // Setup MapTileSourceManager mock behavior
-        every { mockMapTileSourceManager.httpEnabledFlow } returns httpEnabledFlow
-
-        // Setup SettingsRepository mock behavior
-        every { mockSettingsRepository.httpEnabledForDownloadFlow } returns httpEnabledForDownloadFlow
     }
 
     @After
@@ -96,8 +83,6 @@ class OfflineMapDownloadViewModelTest {
             context = context,
             offlineMapRegionRepository = offlineMapRegionRepository,
             mapLibreOfflineManager = mockMapLibreOfflineManager,
-            mapTileSourceManager = mockMapTileSourceManager,
-            settingsRepository = mockSettingsRepository,
         )
     }
 
@@ -1196,118 +1181,6 @@ class OfflineMapDownloadViewModelTest {
 
                 cancelAndConsumeRemainingEvents()
             }
-        }
-
-    // endregion
-
-    // region HTTP Enabled State Tests
-
-    @Test
-    fun `initial state reflects httpEnabled from flow`() =
-        runTest {
-            httpEnabledFlow.value = true
-            viewModel = createViewModel()
-
-            viewModel.state.test {
-                val state = awaitItem()
-                assertTrue(state.httpEnabled)
-
-                cancelAndConsumeRemainingEvents()
-            }
-        }
-
-    @Test
-    fun `httpEnabled state updates when flow changes`() =
-        runTest {
-            httpEnabledFlow.value = true
-            viewModel = createViewModel()
-
-            viewModel.state.test {
-                val initial = awaitItem()
-                assertTrue(initial.httpEnabled)
-
-                httpEnabledFlow.value = false
-                val updated = awaitItem()
-                assertFalse(updated.httpEnabled)
-
-                cancelAndConsumeRemainingEvents()
-            }
-        }
-
-    @Test
-    fun `enableHttp sets httpEnabledForDownload flag and enables HTTP`() =
-        runTest {
-            httpEnabledFlow.value = false
-            viewModel = createViewModel()
-
-            viewModel.enableHttp()
-
-            // Verify the download flag is set
-            coVerify { mockSettingsRepository.setHttpEnabledForDownload(true) }
-            // Verify HTTP is enabled
-            coVerify { mockMapTileSourceManager.setHttpEnabled(true) }
-        }
-
-    @Test
-    fun `httpAutoDisabled is false initially`() =
-        runTest {
-            viewModel = createViewModel()
-
-            viewModel.state.test {
-                val state = awaitItem()
-                assertFalse(state.httpAutoDisabled)
-
-                cancelAndConsumeRemainingEvents()
-            }
-        }
-
-    @Test
-    fun `dismissHttpAutoDisabledMessage clears httpAutoDisabled flag`() =
-        runTest {
-            viewModel = createViewModel()
-
-            viewModel.state.test {
-                val initial = awaitItem()
-                assertFalse(initial.httpAutoDisabled)
-
-                // Manually set httpAutoDisabled to true via internal state update
-                // We simulate this by triggering the dismiss and verifying it stays false
-                viewModel.dismissHttpAutoDisabledMessage()
-
-                // Should remain false (no event emitted if already false)
-                expectNoEvents()
-
-                cancelAndConsumeRemainingEvents()
-            }
-        }
-
-    @Test
-    fun `httpEnabled false initially when flow starts with false`() =
-        runTest {
-            httpEnabledFlow.value = false
-            viewModel = createViewModel()
-
-            viewModel.state.test {
-                val state = awaitItem()
-                assertFalse(state.httpEnabled)
-
-                cancelAndConsumeRemainingEvents()
-            }
-        }
-
-    @Test
-    fun `enableHttp does not throw when called multiple times`() =
-        runTest {
-            httpEnabledFlow.value = false
-            viewModel = createViewModel()
-
-            // Call enableHttp multiple times
-            viewModel.enableHttp()
-            viewModel.enableHttp()
-
-            // Verify calls were made (at least twice)
-            coVerify(atLeast = 2) { mockSettingsRepository.setHttpEnabledForDownload(true) }
-            coVerify(atLeast = 2) { mockMapTileSourceManager.setHttpEnabled(true) }
         }
 
     // endregion
